@@ -1,9 +1,7 @@
-type Card = {
+type DashboardCard = {
     title: string;
     value: number | string;
     change: string;
 }
 
-type Cards = Card[];
-
-export type { Card, Cards };
+export type { DashboardCard };

@@ -24,9 +24,9 @@ import {
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { usePathname } from "next/dist/client/components/navigation";
-import { DashboardSidebarButtons } from "@/types/dashboard-sidebar-button.type";
+import { DashboardSidebarButton } from "@/types/dashboard-sidebar-button.type";
 
-const items: DashboardSidebarButtons = [
+const items: DashboardSidebarButton[] = [
   {
     title: "Tổng quan",
     url: "/dashboard",

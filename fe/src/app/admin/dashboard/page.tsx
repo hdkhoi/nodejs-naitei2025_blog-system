@@ -2,10 +2,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { DashboardAreaChart } from "../components/dashboard-area-chart";
 import { DashboardBarChart } from "../components/dashboard-bar-chart";
-import { Cards } from "@/types/dashboard-card.type";
+import { DashboardCard } from "@/types/dashboard-card.type";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-const cards: Cards = [
+const cards: DashboardCard[] = [
   {
     title: "Tổng số bài viết",
     value: "120",
