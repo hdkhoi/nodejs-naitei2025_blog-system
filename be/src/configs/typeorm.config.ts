@@ -15,7 +15,7 @@ export const typeORMConfig = (
     database: configService.get<string>('DB_NAME'),
     entities: [join(__dirname, '..', '**', '*.entity.{js,ts}')],
     migrations: ['dist/migrations/*.js'],
-    migrationsRun: true, // ← Tự động chạy migration khi start
+    migrationsRun: true,
     synchronize: false,
   };
 };

@@ -29,7 +29,6 @@ export class UserEntity extends BaseEntity {
   articles: ArticleEntity[];
 
   // User theo dõi ai (following)
-  @Exclude()
   @ManyToMany(() => UserEntity, (user) => user.followers)
   @JoinTable({
     name: 'user_follows', // ← Tên bảng trung gian
@@ -39,7 +38,6 @@ export class UserEntity extends BaseEntity {
   following: UserEntity[];
 
   // Ai theo dõi user này (followers)
-  @Exclude()
   @ManyToMany(() => UserEntity, (user) => user.following)
   followers: UserEntity[];
 
@@ -59,7 +57,6 @@ export class UserEntity extends BaseEntity {
   @Exclude()
   declare id: number;
 
-  @Exclude()
   declare created_at: Date;
 
   @Exclude()
