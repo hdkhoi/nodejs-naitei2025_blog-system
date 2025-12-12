@@ -12,14 +12,18 @@ import { TagController } from './modules/tag/tag.controller';
 import { NotificationController } from './modules/notification/notification.controller';
 import { JwtModule, JwtModuleAsyncOptions } from '@nestjs/jwt';
 import { jwtConfig } from './configs/jwt.config';
-import { ThrottlerModule, ThrottlerModuleOptions, ThrottlerGuard } from '@nestjs/throttler';
+import {
+  ThrottlerModule,
+  ThrottlerModuleOptions,
+  ThrottlerGuard,
+} from '@nestjs/throttler';
 import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { TagModule } from './modules/tag/tag.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -55,7 +59,7 @@ import { TagModule } from './modules/tag/tag.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,
-    }
+    },
   ],
 })
 export class AppModule {}
