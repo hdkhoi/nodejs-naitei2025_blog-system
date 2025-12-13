@@ -5,6 +5,7 @@ import { CommentEntity } from 'src/modules/comment/entities/comment.entity';
 import { TagEntity } from 'src/modules/tag/entities/tag.entity';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import {
+  AfterLoad,
   Column,
   DeleteDateColumn,
   Entity,
@@ -59,7 +60,6 @@ export class ArticleEntity extends BaseEntity {
   @JoinColumn({ name: 'authorId' })
   author: UserEntity;
 
-  @Exclude()
   @ManyToMany(() => UserEntity, (user) => user.favoritedArticles)
   @JoinTable({
     name: 'user_favorite_articles',
@@ -68,10 +68,15 @@ export class ArticleEntity extends BaseEntity {
   })
   favoritedBy: UserEntity[];
 
-  @Exclude()
+  favoritesCount: number;
+
+  @AfterLoad()
+  computeFavoritesCount() {
+    this.favoritesCount = this.favoritedBy ? this.favoritedBy.length : 0;
+  }
+
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   deletedAt?: Date;
 
-  @Exclude()
   declare id: number;
 }

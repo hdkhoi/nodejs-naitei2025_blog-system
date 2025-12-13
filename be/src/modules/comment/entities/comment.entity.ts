@@ -13,7 +13,7 @@ export class CommentEntity extends BaseEntity {
   @JoinColumn({ name: 'authorId' })
   author: UserEntity;
 
-  @Exclude()
+   
   @ManyToOne(() => ArticleEntity, (article) => article.comments, {
     onDelete: 'CASCADE',
   })

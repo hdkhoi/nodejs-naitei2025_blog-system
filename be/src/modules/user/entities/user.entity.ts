@@ -2,7 +2,14 @@ import { Exclude } from 'class-transformer';
 import { BaseEntity } from 'src/common/class/base-entity';
 import { ArticleEntity } from 'src/modules/article/entities/article.entity';
 import { NotificationEntity } from 'src/modules/notification/entities/notification.entity';
-import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
+import {
+  AfterLoad,
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+} from 'typeorm';
 
 @Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {
@@ -15,7 +22,6 @@ export class UserEntity extends BaseEntity {
   @Column({ length: 10, unique: true, nullable: false })
   username: string;
 
-  @Exclude()
   @Column({ length: 200, nullable: false, select: false })
   password: string;
 
@@ -41,7 +47,6 @@ export class UserEntity extends BaseEntity {
   @ManyToMany(() => UserEntity, (user) => user.following)
   followers: UserEntity[];
 
-  @Exclude()
   @ManyToMany(() => ArticleEntity, (article) => article.favoritedBy)
   favoritedArticles: ArticleEntity[];
 
@@ -54,12 +59,19 @@ export class UserEntity extends BaseEntity {
   @OneToMany(() => NotificationEntity, (notification) => notification.recipient)
   notifications: NotificationEntity[];
 
-  @Exclude()
+  followingCount: number;
+  followersCount: number;
+  articlesCount: number;
+
+  @AfterLoad()
+  computeCounts() {
+    this.followingCount = this.following ? this.following.length : 0;
+    this.followersCount = this.followers ? this.followers.length : 0;
+    this.articlesCount = this.articles ? this.articles.length : 0;
+  }
+
   declare id: number;
 
-  declare created_at: Date;
-
-  @Exclude()
   declare updated_at: Date;
 
   constructor(partial: Partial<UserEntity>) {
