@@ -52,7 +52,7 @@ export class ArticleEntity extends BaseEntity {
   @Transform(({ value }) => value.map((tag: TagEntity) => tag.name) as string[])
   tagList: TagEntity[];
 
-  @OneToMany(() => CommentEntity, (comment) => comment.article)
+  @OneToMany(() => CommentEntity, (comment) => comment.article, { eager: true })
   comments: CommentEntity[];
 
   @ManyToOne(() => UserEntity, (user) => user.articles, {

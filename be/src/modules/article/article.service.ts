@@ -156,7 +156,7 @@ export class ArticleService {
       .where('article.deletedAt IS NULL')
       .andWhere('author.id IN (:...ids)', { ids: followingIds }) // Chuyển điều kiện xuống WHERE
       .andWhere('article.status = :status', { status: ArticleStatus.PUBLISHED })
-      .orderBy('article.createdAt', 'DESC') // Feed thường cần bài mới nhất
+      .orderBy('article.created_at', 'DESC') // Feed thường cần bài mới nhất
       .take(limit)
       .skip(offset)
       .getManyAndCount(); // Lấy cả data và tổng số record

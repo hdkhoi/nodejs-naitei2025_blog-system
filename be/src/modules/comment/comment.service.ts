@@ -222,7 +222,7 @@ export class CommentService {
     });
 
     if (!parentComment) {
-      throw new NotFoundException('Bình luận không tồn tại');
+      throw new NotFoundException('Comment not found');
     }
 
     const queryBuilder = this.commentRepository

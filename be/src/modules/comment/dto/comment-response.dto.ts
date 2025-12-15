@@ -63,4 +63,3 @@ export class CommentListResponseDto {
   @Expose()
   nextCursor: number | null;
 }
-

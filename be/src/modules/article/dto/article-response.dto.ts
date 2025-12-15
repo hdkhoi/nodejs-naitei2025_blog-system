@@ -32,9 +32,9 @@ export class ArticleListItemDto {
   })
   tagList: TagEntity[];
   @Expose()
-  createdAt: Date;
+  created_at: Date;
   @Expose()
-  updatedAt: Date;
+  updated_at: Date;
   @Expose()
   @Type(() => UserBasicDto)
   author: UserBasicDto;
