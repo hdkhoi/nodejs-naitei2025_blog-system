@@ -1,25 +1,27 @@
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/navbar/Navbar";
 import "./globals.css";
-import { Geist } from 'next/font/google'
- 
-const geist = Geist({
-  subsets: ['latin'],
-})
+import { Geist } from "next/font/google";
+import { AuthProvider } from "@/hooks/useAuth";
+import { cookies } from "next/headers";
+import { getAuthServer } from "@/lib/auth-server";
 
-export default function RootLayout({
+const geist = Geist({
+  subsets: ["latin"],
+});
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getAuthServer();
   return (
     <html lang="en">
-      <body className={`${geist.className} min-h-screen bg-background`}>
-        <Navbar />
-        <main className="container mx-auto p-4 gap-5 grid">
-
-        {children}
-        </main>
-      </body>
+      <AuthProvider initialUser={user}>
+        <body className={`${geist.className} min-h-screen bg-background`}>
+          {children}
+        </body>
+      </AuthProvider>
     </html>
   );
 }

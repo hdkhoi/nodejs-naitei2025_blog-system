@@ -1,17 +1,20 @@
+"use client";
 import { Label } from "@/components/ui/label";
-import { Card, CardDescription, CardHeader } from "@/components/ui/card";
-import { DashboardAreaChart } from "../components/dashboard-area-chart";
-import { DashboardBarChart } from "../components/dashboard-bar-chart";
-import { DashboardCard } from "@/types/dashboard-card.type";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Column, DashboardTable } from "../components/dashboard-table";
 import { Badge } from "@/components/ui/badge";
 import { UserListItem } from "@/interfaces/user.interface";
 import Image from "next/image";
-import DashboardDetailModal from "../components/dashboard-detail-modal";
 import UserDetailModal from "../components/modals/detail-modals/UserDetailModal";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
+import userApi from "@/api/user.api";
 
 export default function Page() {
+  const { user } = useAuth();
+  const { token } = user || "";
+  const [isLoading, setIsLoading] = useState(true);
+  const [users, setUsers] = useState<UserListItem[]>([]);
   const columns: Column<UserListItem & { actions: string }>[] = [
     {
       key: "name",
@@ -55,56 +58,18 @@ export default function Page() {
     },
   ];
 
-  const users: UserListItem[] = [
-    {
-      name: "Alex Johnson",
-      email: "alex.johnson@example.com",
-      username: "alexjohnson",
-      bio: "Tech enthusiast and blogger.",
-      image: "",
-      article_count: 0,
-      follower_count: 0,
-      following_count: 0,
-      role: "ADMIN",
-      created_at: "2024-04-20",
-    },
-    {
-      name: "Maria Garcia",
-      email: "maria.garcia@example.com",
-      username: "mariagarcia",
-      bio: "Passionate about technology and education.",
-      image: "",
-      article_count: 36,
-      follower_count: 63,
-      following_count: 12,
-      role: "USER",
-      created_at: "2024-04-18",
-    },
-    {
-      name: "Chen Wei",
-      email: "chen.wei@example.com",
-      username: "chenwei",
-      bio: "Lifelong learner and tech blogger.",
-      image: "",
-      article_count: 15,
-      follower_count: 45,
-      following_count: 30,
-      role: "USER",
-      created_at: "2024-04-19",
-    },
-    {
-      name: "David Smith",
-      email: "david.smith@example.com",
-      username: "davidsmith",
-      bio: "Software developer and tech enthusiast.",
-      image: "",
-      article_count: 20,
-      follower_count: 50,
-      following_count: 25,
-      role: "USER",
-      created_at: "2024-04-17",
-    },
-  ];
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const response = await userApi.getUsers(token || "");
+      if (response.success) {
+        setUsers(response.data.items);
+      } else {
+        alert(response.error);
+      }
+      setIsLoading(false);
+    };
+    fetchUsers();
+  }, []);
 
   return (
     <>

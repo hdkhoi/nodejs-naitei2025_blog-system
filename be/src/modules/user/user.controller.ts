@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Query,
+  ParseEnumPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -21,12 +22,22 @@ import { IJwtPayload } from 'src/common/interfaces/IJwtPayload';
 import { Serialize } from 'src/common/decorators/serialize.decorator';
 import { UserDetailDto, UserListItemDto } from './dto/user-response.dto';
 
+enum UserRole {
+  USER = 'user',
+  ADMIN = 'admin',
+}
+
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
+  @Post(':role')
+  async create(
+    @Param('role', new ParseEnumPipe(UserRole)) role: UserRole,
+    @Body() createUserDto: CreateUserDto,
+  ) {
+    const roleUpper = role.toUpperCase() as 'USER' | 'ADMIN';
+    createUserDto.role = roleUpper;
     return await this.userService.create(createUserDto);
   }
 
@@ -43,7 +54,7 @@ export class UserController {
   }
 
   @UseGuards(JwtGuard)
-  @Patch()
+  @Put()
   @Serialize(UserDetailDto)
   async update(@Req() req: any, @Body() updateUserDto: UpdateUserDto) {
     const { id } = req.user as IJwtPayload;

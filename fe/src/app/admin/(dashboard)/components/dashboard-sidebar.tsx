@@ -53,7 +53,6 @@ export function DashboardSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const path = usePathname().replace("/admin/", "") || "dashboard";
-  console.log("Current path:", path);
   return (
     <Sidebar {...props}>
       <SidebarHeader>

@@ -13,6 +13,7 @@ import {
 import { UserListItem } from "@/interfaces/user.interface";
 import { Clock, Eye, MessageSquare } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const UserDetailModal = ({ item }: { item: UserListItem }) => {
   const getRoleBadge = (role: string) => {
@@ -68,18 +69,20 @@ const UserDetailModal = ({ item }: { item: UserListItem }) => {
             </div>
           </div>
           <div className="grid gap-6 text-sm">
-            <div className="flex justify-between" >
-                <span className="text-muted-foreground">Email</span>
-                <span className="font-semibold">{item.email}</span>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Email</span>
+              <span className="font-semibold">{item.email}</span>
             </div>
-            <div className="flex justify-between" >
-                <span className="text-muted-foreground">Role</span>
-                <span>{roleBadge}</span>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Role</span>
+              <span>{roleBadge}</span>
             </div>
           </div>
         </div>
         <DialogFooter className="border-t mt-4 pt-4">
-          <Button variant="default">Xem chi tiết hồ sơ</Button>
+          <Link href={`/profile/${item.username}`}>
+            <Button variant="default">Xem chi tiết hồ sơ</Button>
+          </Link>
         </DialogFooter>
       </DialogContent>
     </Dialog>

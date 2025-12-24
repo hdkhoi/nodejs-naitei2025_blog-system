@@ -1,5 +1,5 @@
-import { articleList } from "./mock-data/article.mock-data";
 import PostList from "@/components/PostList";
+import { articleList } from "../mock-data/article.mock-data";
 
 export default function Page() {
   const articles = articleList;

@@ -119,7 +119,14 @@ export class ArticleService {
   async findBySlug(slug: string) {
     const article = await this.articleRepository.findOne({
       where: { slug, deletedAt: undefined },
-      relations: { author: true, favoritedBy: true, tagList: true },
+      relations: {
+        author: true,
+        favoritedBy: true,
+        tagList: true,
+        comments: {
+          parentComment: true,
+        }
+      },
     });
 
     if (!article) {
@@ -280,6 +287,11 @@ export class ArticleService {
 
   async approveArticle(slug: string) {
     const article = await this.findBySlug(slug);
+    if (article.status !== ArticleStatus.PENDING) {
+      throw new ConflictException('Approve article failed', {
+        description: 'Only pending articles can be approved',
+      });
+    }
     article.status = ArticleStatus.PUBLISHED;
     article.published_at = new Date();
     return await this.articleRepository.save(article);
@@ -287,6 +299,11 @@ export class ArticleService {
 
   async rejectArticle(slug: string) {
     const article = await this.findBySlug(slug);
+    if (article.status !== ArticleStatus.PENDING) {
+      throw new ConflictException('Reject article failed', {
+        description: 'Only pending articles can be rejected',
+      });
+    }
     article.status = ArticleStatus.REJECTED;
     return await this.articleRepository.save(article);
   }

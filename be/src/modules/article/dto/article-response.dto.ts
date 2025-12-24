@@ -22,9 +22,9 @@ export class ArticleListItemDto {
   @Expose()
   reading_time: number;
   @Expose()
-  favoritesCount: number;
+  favorites_count: number;
   @Expose()
-  commentCount: number;
+  comments_count: number;
   @Expose()
   @Transform(({ value }) => {
     if (!Array.isArray(value)) return [];
