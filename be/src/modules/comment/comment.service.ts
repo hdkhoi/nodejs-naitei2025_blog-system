@@ -12,6 +12,7 @@ import { UserEntity } from '../user/entities/user.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { GetCommentsQueryDto } from './dto/get-comments-query.dto';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class CommentService {
@@ -21,6 +22,7 @@ export class CommentService {
     @InjectRepository(ArticleEntity)
     private readonly articleRepository: Repository<ArticleEntity>,
     private readonly dataSource: DataSource,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async createComment(
@@ -30,6 +32,7 @@ export class CommentService {
   ): Promise<CommentEntity> {
     const article = await this.articleRepository.findOne({
       where: { slug },
+      relations: ['author'],
     });
 
     if (!article) {
@@ -44,7 +47,17 @@ export class CommentService {
       article: article,
     });
 
-    return this.commentRepository.save(comment);
+    const savedComment = await this.commentRepository.save(comment);
+
+    //Tạo Notifications khi có người bình luận bài viết
+    if (article.author.id !== user.id) {
+      await this.notificationService.createCommentNotification(
+        savedComment,
+        article,
+      );
+    }
+
+    return savedComment;
   }
 
   async createReply(
@@ -110,7 +123,18 @@ export class CommentService {
         await commentRepo.save(grandParentComment);
       }
 
-      return commentRepo.save(newComment);
+      const savedReply = await commentRepo.save(newComment);
+
+      //Tạo Notifications khi có người reply comment
+      if (parentComment.author.id !== user.id) {
+        await this.notificationService.createReplyNotification(
+          savedReply,
+          parentComment,
+          parentComment.article,
+        );
+      }
+
+      return savedReply;
     });
   }
 

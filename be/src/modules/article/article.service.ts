@@ -14,6 +14,7 @@ import { TagService } from '../tag/tag.service';
 import { FindManyArticlesQueryDto } from './dto/find-many-articles-query.dto';
 import readingTime from 'reading-time';
 import { ArticleStatus } from 'src/common/class/enum/article.enum';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class ArticleService {
@@ -22,7 +23,7 @@ export class ArticleService {
     private readonly articleRepository: Repository<ArticleEntity>,
     private readonly userService: UserService,
     private readonly tagService: TagService,
-    // private readonly commentSerivice: CommentService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async validateTitle(title: string) {
@@ -142,7 +143,6 @@ export class ArticleService {
 
     const followingUsers = await this.userService.getFollowing(userId);
 
-    // Nếu không follow ai thì trả về rỗng luôn, đỡ tốn công query DB lần 2
     if (followingUsers.length === 0) {
       return { items: [], articlesCount: 0 };
     }
@@ -258,6 +258,15 @@ export class ArticleService {
 
     article.favoritedBy = [...article.favoritedBy, currentUser];
     const updatedArticle = await this.articleRepository.save(article);
+
+    // Tạo Notification khi có người favorite bài viết
+    if (article.author.id !== currentUserId) {
+      await this.notificationService.createFavoriteNotification(
+        currentUser,
+        article,
+      );
+    }
+
     return updatedArticle;
   }
 
@@ -282,7 +291,12 @@ export class ArticleService {
     const article = await this.findBySlug(slug);
     article.status = ArticleStatus.PUBLISHED;
     article.published_at = new Date();
-    return await this.articleRepository.save(article);
+    const savedArticle = await this.articleRepository.save(article);
+
+    // Tạo Notifications cho người theo dõi khi bài viết được duyệt
+    await this.notificationService.createNewArticleNotifications(savedArticle);
+
+    return savedArticle;
   }
 
   async rejectArticle(slug: string) {
