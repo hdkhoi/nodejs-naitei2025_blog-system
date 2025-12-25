@@ -49,15 +49,6 @@ export class CommentService {
 
     const savedComment = await this.commentRepository.save(comment);
 
-    //Tạo Notifications khi có người bình luận bài viết
-    if (article.author.id !== user.id) {
-      await this.notificationService.createCommentNotification(
-        savedComment,
-        article,
-      );
-    }
-
-    // QUAN TRỌNG: Load lại comment để lấy đầy đủ thông tin author và timestamps chính xác
     const fullComment = await this.commentRepository.findOne({
       where: { id: savedComment.id },
       relations: ['author'],
@@ -65,6 +56,14 @@ export class CommentService {
 
     if (!fullComment) {
       throw new NotFoundException('Không tìm thấy bình luận vừa tạo');
+    }
+
+    // Tạo Notification khi có người bình luận bài viết (sau khi đã load đầy đủ author)
+    if (article.author.id !== user.id) {
+      await this.notificationService.createCommentNotification(
+        fullComment,
+        article,
+      );
     }
 
     return fullComment;
@@ -75,87 +74,68 @@ export class CommentService {
     createCommentDto: CreateCommentDto,
     user: UserEntity,
   ): Promise<CommentEntity> {
-    return this.dataSource.transaction(async (manager) => {
-      const commentRepo = manager.getRepository(CommentEntity);
-
-      const parentComment = await commentRepo.findOne({
-        where: { id: commentId },
-        relations: ['author', 'article', 'parentComment'],
-        lock: { mode: 'pessimistic_write' },
-      });
-
-      if (!parentComment) {
-        throw new NotFoundException('Bình luận không tồn tại');
-      }
-
-      let newComment: CommentEntity;
-
-      // Logic xử lý độ sâu comment (Max depth = 2)
-      if (parentComment.depth < 2) {
-        newComment = commentRepo.create({
-          body: createCommentDto.body,
-          depth: parentComment.depth + 1,
-          replyCount: 0,
-          author: user,
-          article: parentComment.article,
-          parentComment: parentComment,
-        });
-
-        parentComment.replyCount += 1;
-        await commentRepo.save(parentComment);
-      } else {
-        // Nếu đã quá sâu, gán vào ông nội (Grandparent)
-        const grandParent = parentComment.parentComment;
-
-        if (!grandParent) {
-          throw new BadRequestException('Không thể tạo reply cho comment này');
-        }
-
-        const grandParentComment = await commentRepo.findOne({
-          where: { id: grandParent.id },
-          lock: { mode: 'pessimistic_write' },
-        });
-
-        if (!grandParentComment) {
-          throw new NotFoundException('Comment cha không tồn tại');
-        }
-
-        newComment = commentRepo.create({
-          body: createCommentDto.body,
-          depth: 2,
-          replyCount: 0,
-          author: user,
-          article: parentComment.article,
-          parentComment: grandParentComment, // Gán parent là ông nội
-        });
-
-        grandParentComment.replyCount += 1;
-        await commentRepo.save(grandParentComment);
-      }
-
-      const savedReply = await commentRepo.save(newComment);
-
-      //Tạo Notifications khi có người reply comment
-      if (parentComment.author.id !== user.id) {
-        await this.notificationService.createReplyNotification(
-          savedReply,
-          parentComment,
-          parentComment.article,
-        );
-      }
-
-      // QUAN TRỌNG: Load lại để lấy author và parentComment (để DTO map được parentId)
-      const fullReply = await commentRepo.findOne({
-        where: { id: savedReply.id },
-        relations: ['author', 'parentComment'],
-      });
-
-      if (!fullReply) {
-        throw new NotFoundException('Không tìm thấy phản hồi vừa tạo');
-      }
-
-      return fullReply;
+    const parentComment = await this.commentRepository.findOne({
+      where: { id: commentId },
+      relations: ['author', 'article', 'parentComment'],
     });
+
+    if (!parentComment) {
+      throw new NotFoundException('Bình luận không tồn tại');
+    }
+
+    let newComment: CommentEntity;
+    let targetParentId: number;
+
+    if (parentComment.depth < 2) {
+      newComment = this.commentRepository.create({
+        body: createCommentDto.body,
+        depth: parentComment.depth + 1,
+        replyCount: 0,
+        author: user,
+        article: parentComment.article,
+        parentComment: parentComment,
+      });
+      targetParentId = parentComment.id;
+    } else {
+      const grandParent = parentComment.parentComment;
+
+      if (!grandParent) {
+        throw new BadRequestException('Không thể tạo reply cho comment này');
+      }
+
+      newComment = this.commentRepository.create({
+        body: createCommentDto.body,
+        depth: 2,
+        replyCount: 0,
+        author: user,
+        article: parentComment.article,
+        parentComment: grandParent,
+      });
+      targetParentId = grandParent.id;
+    }
+
+    const savedReply = await this.commentRepository.save(newComment);
+
+    await this.commentRepository.increment({ id: targetParentId }, 'replyCount', 1);
+
+    const fullReply = await this.commentRepository.findOne({
+      where: { id: savedReply.id },
+      relations: ['author', 'parentComment'],
+    });
+
+    if (!fullReply) {
+      throw new NotFoundException('Không tìm thấy phản hồi vừa tạo');
+    }
+
+    if (parentComment.author.id !== user.id) {
+      await this.notificationService.createReplyNotification(
+        fullReply,
+        parentComment,
+        parentComment.article,
+      );
+    }
+
+    return fullReply;
   }
 
   async getCommentsByArticle(
